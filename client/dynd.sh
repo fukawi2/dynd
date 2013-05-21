@@ -112,11 +112,16 @@ fi
 
 # get our current ip addresses via external url
 debug "Using $IP_CHECK to fetch current IP Address(es)"
-new_ip4=$(curl --silent --noproxy '*' --ipv4 $IP_CHECK)
-new_ip6=$(curl --silent --noproxy '*' --ipv6 $IP_CHECK)
+new_ip4=$(curl --silent --noproxy '*' --ipv4 $IP_CHECK || true)
+new_ip6=$(curl --silent --noproxy '*' --ipv6 $IP_CHECK || true)
 msg "Current IP Addresses are:"
 msg "\tIPv4: $new_ip4"
 msg "\tIPv6: $new_ip6"
+
+# did we get data?
+if [[ -z $new_ip4 && -z $new_ip6 ]] ; then
+  bomb "Error determining IP Address(es); No data returned from $IP_CHECK"
+fi
 
 # do we need to do anything?
 if [[ $old_ip4 == $new_ip4 && $old_ip6 == $new_ip6 ]] ; then
