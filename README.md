@@ -42,6 +42,9 @@ directory and then include. On a Debian system:
     # echo 'include "/etc/bind/dynd.conf";' >> /etc/bind/named.conf.local
     # rndc reconfig
 
+Don't forget to make sure the zone file of the new zone is WRITABLE by the BIND
+user.
+
 #### Authentication and Authorization
 
 Each client needs to be given a key to authenticate with the server. The server
