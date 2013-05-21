@@ -6,7 +6,23 @@ IP_CHECK='ipchimp.net'
 STATE_FILE="$HOME/.dynd-last_ips"
 
 function usage() {
-  echo "$0 -s server -z zone -r rr -k keyname:keysecret [-t ttl] [-h]" >&2
+  cat >&2 <<EOH
+$0 -s server -z zone -r rr -k keyname:keysecret [-t ttl] [-h] [-v] [-D] [-f]
+
+  -s  Server Address (eg, ns1.example.com)
+  -z  Zone to update (eg, dyn.example.com)
+  -r  RR to update (eg, client1.dyn.example.com)
+  -k  Key to authentication with. This is the keyname and the key string
+      separated by a colon
+  -t  Override the default TTL of the new RR
+  -v  Verbose output
+  -D  Debug output
+  -f  Force update (even if addresses haven't changed)
+  -h  This Help
+
+  Example:
+  $0 -s ns1.example.com -z dyn.example.com -r client1 -k client1:NdZglC1bVKpuOQsoYE4LAQ==
+EOH
 }
 
 function msg() {
