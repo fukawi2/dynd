@@ -137,10 +137,15 @@ server $_server
 key $_key_name $_key_secret
 ttl $_ttl
 update delete ${_rr}.${_zone}
-update add ${_rr}.${_zone} A $new_ip4
-update add ${_rr}.${_zone} AAAA $new_ip6
-send
 EOT
+# only append an 'update add' for the address(es) we know
+#(IPv4/A and/or IPv6/AAAA)
+[[ -n "$new_ip4" ]] && \
+  echo "update add ${_rr}.${_zone} A $new_ip4" >> $tfile
+[[ -n "$new_ip6" ]] && \
+  echo "update add ${_rr}.${_zone} AAAA $new_ip6" >> $tfile
+# close off by sending the request
+echo 'send' >> $tfile
 
 # send the update request to the server
 msg "Sending update request to server $_server"
