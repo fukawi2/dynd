@@ -4,6 +4,7 @@ set -e
 
 IP_CHECK='ipchimp.net'
 STATE_FILE="$HOME/.dynd-last_ips"
+MAX_UPDATE_INTERVAL=86400
 
 function usage() {
   cat >&2 <<EOH
@@ -23,6 +24,13 @@ $0 -s server -z zone -r rr -k keyname:keysecret [-t ttl] [-h] [-v] [-D] [-f]
   Example:
   $0 -s ns1.example.com -z dyn.example.com -r client1 -k client1:NdZglC1bVKpuOQsoYE4LAQ==
 EOH
+}
+
+function file_age_in_secs() {
+  local _fname="$1"
+  local _file_mtime=$(stat -tc%Y $_fname)
+  local _epoch=$(date +%s)
+  echo $(($_epoch - $_file_mtime))
 }
 
 function msg() {
@@ -100,6 +108,16 @@ done
 [[ -z $_rr ]]         && bomb "Need to know the RR"
 [[ -z $_key_name ]]   && bomb "Need to know the key name"
 [[ -z $_key_secret ]] && bomb "Need to know the key secret"
+
+# do we want to update purely because it's been a while?
+if [[ -f $STATE_FILE ]] ; then
+  state_file_age=$(file_age_in_secs $STATE_FILE)
+  if [[ $state_file_age -gt $MAX_UPDATE_INTERVAL ]] ; then
+    # yes
+    debug "Forcing update because it's been $state_file_age seconds since last update"
+    rm -f $STATE_FILE
+  fi
+fi
 
 # what was our old ip address?
 old_ip4='NULL'
