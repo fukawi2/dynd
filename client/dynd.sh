@@ -5,6 +5,7 @@ set -e
 IP_CHECK='ipchimp.net'
 STATE_FILE="$HOME/.dynd-last_ips"
 MAX_UPDATE_INTERVAL=86400
+SYSLOG='logger -t dynd-client'
 
 function usage() {
   cat >&2 <<EOH
@@ -109,11 +110,14 @@ done
 [[ -z $_key_name ]]   && bomb "Need to know the key name"
 [[ -z $_key_secret ]] && bomb "Need to know the key secret"
 
+$SYSLOG "Started"
+
 # do we want to update purely because it's been a while?
 if [[ -f $STATE_FILE ]] ; then
   state_file_age=$(file_age_in_secs $STATE_FILE)
   if [[ $state_file_age -gt $MAX_UPDATE_INTERVAL ]] ; then
     # yes
+    $SYSLOG "$state_file_age seconds since last update; Forcing update."
     debug "Forcing update because it's been $state_file_age seconds since last update"
     rm -f $STATE_FILE
   fi
@@ -138,14 +142,19 @@ msg "\tIPv6: $new_ip6"
 
 # did we get data?
 if [[ -z $new_ip4 && -z $new_ip6 ]] ; then
+  $SYSLOG "Error determining IP Address(es); Aborting"
   bomb "Error determining IP Address(es); No data returned from $IP_CHECK"
 fi
 
 # do we need to do anything?
 if [[ $old_ip4 == $new_ip4 && $old_ip6 == $new_ip6 ]] ; then
+  $SYSLOG "IP Address not changed; Nothing to do"
   msg "IP Address not changed; Nothing to do"
   exit 0
 fi
+
+[[ -n "$new_ip4" ]] && $SYSLOG "Updating IPv4 address to $new_ip4"
+[[ -n "$new_ip6" ]] && $SYSLOG "Updating IPv6 address to $new_ip6"
 
 # build a temp file with our zone update request
 debug "Building temporary file with nsupdate commands"
@@ -166,6 +175,7 @@ EOT
 echo 'send' >> $tfile
 
 # send the update request to the server
+$SYSLOG "Sending update request to server $_server"
 msg "Sending update request to server $_server"
 nsupdate $tfile
 
@@ -175,5 +185,7 @@ echo "$new_ip4 $new_ip6" > $STATE_FILE
 
 debug "Removing temp file $tfile"
 rm -f $tfile
+
+$SYSLOG "Complete"
 
 exit 0
