@@ -112,6 +112,11 @@ done
 
 $SYSLOG "Started"
 
+# change our pwd to /tmp so if we need to write temp
+# files we will have permissions regardless of the
+# user we are running as
+cd /tmp
+
 # do we want to update purely because it's been a while?
 if [[ -f $STATE_FILE ]] ; then
   state_file_age=$(file_age_in_secs $STATE_FILE)
