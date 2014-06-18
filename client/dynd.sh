@@ -50,6 +50,27 @@ function bomb() {
   exit 1
 }
 
+function get_ipv4_by_http() {
+  which curl &> /dev/null || return 1
+  curl --silent --noproxy '*' --ipv4 $IP_CHECK || true
+}
+
+function get_ipv6_by_http() {
+  which curl &> /dev/null || return 1
+  curl --silent --noproxy '*' --ipv6 $IP_CHECK || true
+}
+
+function get_ipv4_by_dns() {
+  which dig &> /dev/null || return 1
+  dig +short myip.opendns.com @resolver1.opendns.com || true
+}
+
+function get_ipv6_by_dns() {
+  # does not work at the moment -- opendns do not support AAAA queries
+  which dig &> /dev/null || return 1
+  dig +short myip.opendns.com @resolver1.opendns.com || true
+}
+
 function main() {
   ### defaults
   _server=
